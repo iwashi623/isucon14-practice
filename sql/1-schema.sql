@@ -140,7 +140,7 @@ CREATE TABLE chair_total_distances (
     chair_id VARCHAR(26)  NOT NULL PRIMARY KEY,
     total_distance INTEGER NOT NULL DEFAULT 0,
     created_at   DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '登録日時',
-    updated_at   DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '更新日時'
+    updated_at   DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '更新日時'
 );
 
 DELIMITER //
@@ -167,7 +167,7 @@ CREATE TRIGGER update_chair_total_distances AFTER INSERT ON chair_locations FOR 
 			total_distance = total_distance + VALUES(total_distance),
 			updated_at = VALUES(updated_at);
 	END //
-  
+
 DELIMITER ;
 
 INSERT INTO chair_total_distances (chair_id, total_distance, updated_at)
