@@ -25,6 +25,8 @@ func main() {
 	http.ListenAndServe(":8080", mux)
 }
 
+const retryMilisec = 1000
+
 func setup() http.Handler {
 	host := os.Getenv("ISUCON_DB_HOST")
 	if host == "" {
@@ -139,6 +141,10 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := initialLatestStatus(); err != nil {
+		slog.Error("failed to initialize latest status", err)
+	}
+
 	writeJSON(w, http.StatusOK, postInitializeResponse{Language: "go"})
 }
 
@@ -182,4 +188,41 @@ func secureRandomStr(b int) string {
 		panic(err)
 	}
 	return fmt.Sprintf("%x", k)
+}
+
+func initialLatestStatus() error {
+	// カラムの追加
+	_, err := db.Exec(`
+		ALTER TABLE rides
+		ADD COLUMN latest_status ENUM ('MATCHING', 'ENROUTE', 'PICKUP', 'CARRYING', 'ARRIVED', 'COMPLETED');
+	`)
+	if err != nil {
+		return fmt.Errorf("initial err, failed to add column: %w", err)
+	}
+
+	// _, err = db.Exec(`
+	// 	CREATE TRIGGER update_latest_status
+	// 	AFTER INSERT ON ride_statuses
+	// 	FOR EACH ROW
+	// 	BEGIN
+	// 		UPDATE rides
+	// 		SET latest_status = NEW.status
+	// 		WHERE id = NEW.ride_id;
+	// 	END;
+	// `)
+
+	// if err != nil {
+	// 	return fmt.Errorf("initial err, failed to create trigger: %w", err)
+	// }
+
+	// _, err = db.Exec(`
+	// 	UPDATE rides
+	// 	SET latest_status = (SELECT status FROM ride_statuses WHERE ride_id = rides.id ORDER BY created_at DESC LIMIT 1);
+	// `)
+
+	if err != nil {
+		return fmt.Errorf("initial err, failed to insert latest_ride_statuses: %w", err)
+	}
+
+	return nil
 }

@@ -217,9 +217,19 @@ func appGetRides(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusInternalServerError, err)
 			return
 		}
+
 		if status != "COMPLETED" {
 			continue
 		}
+
+		// if ride.LatestStatus == nil {
+		// 	writeError(w, http.StatusInternalServerError, errors.New(fmt.Sprintf("ride status is empty: user_id:%v, ride_id:%v", user.ID, ride.ID)))
+		// 	return
+		// }
+
+		// if *ride.LatestStatus != "COMPLETED" {
+		// 	continue
+		// }
 
 		fare, err := calculateDiscountedFare(ctx, tx, user.ID, &ride, ride.PickupLatitude, ride.PickupLongitude, ride.DestinationLatitude, ride.DestinationLongitude)
 		if err != nil {
@@ -326,9 +336,18 @@ func appPostRides(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusInternalServerError, err)
 			return
 		}
+
 		if status != "COMPLETED" {
 			continuingRideCount++
 		}
+
+		// if ride.LatestStatus == nil {
+		// 	writeError(w, http.StatusInternalServerError, errors.New("ride status is empty"))
+		// 	return
+		// }
+		// if *ride.LatestStatus != "COMPLETED" {
+		// 	continuingRideCount++
+		// }
 	}
 
 	if continuingRideCount > 0 {
@@ -535,6 +554,7 @@ func appPostRideEvaluatation(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, err)
 		return
 	}
+
 	status, err := getLatestRideStatus(ctx, tx, ride.ID)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err)
@@ -545,6 +565,16 @@ func appPostRideEvaluatation(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, errors.New("not arrived yet"))
 		return
 	}
+
+	// if ride.LatestStatus == nil {
+	// 	writeError(w, http.StatusInternalServerError, errors.New("ride status is empty"))
+	// 	return
+	// }
+
+	// if *ride.LatestStatus != "ARRIVED" {
+	// 	writeError(w, http.StatusBadRequest, errors.New("not arrived yet"))
+	// 	return
+	// }
 
 	result, err := tx.ExecContext(
 		ctx,
@@ -673,7 +703,7 @@ func appGetNotification(w http.ResponseWriter, r *http.Request) {
 	if err := tx.GetContext(ctx, ride, `SELECT * FROM rides WHERE user_id = ? ORDER BY created_at DESC LIMIT 1`, user.ID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			writeJSON(w, http.StatusOK, &appGetNotificationResponse{
-				RetryAfterMs: 30,
+				RetryAfterMs: retryMilisec,
 			})
 			return
 		}
@@ -685,6 +715,12 @@ func appGetNotification(w http.ResponseWriter, r *http.Request) {
 	status := ""
 	if err := tx.GetContext(ctx, &yetSentRideStatus, `SELECT * FROM ride_statuses WHERE ride_id = ? AND app_sent_at IS NULL ORDER BY created_at ASC LIMIT 1`, ride.ID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			// if ride.LatestStatus == nil {
+			// 	writeError(w, http.StatusInternalServerError, errors.New("ride status is empty"))
+			// 	return
+			// }
+			// status = *ride.LatestStatus
+
 			status, err = getLatestRideStatus(ctx, tx, ride.ID)
 			if err != nil {
 				writeError(w, http.StatusInternalServerError, err)
@@ -897,6 +933,15 @@ func appGetNearbyChairs(w http.ResponseWriter, r *http.Request) {
 		skip := false
 		for _, ride := range rides {
 			// 過去にライドが存在し、かつ、それが完了していない場合はスキップ
+			// if ride.LatestStatus == nil {
+			// 	writeError(w, http.StatusInternalServerError, errors.New("ride status is empty"))
+			// 	return
+			// }
+			// if *ride.LatestStatus != "COMPLETED" {
+			// 	skip = true
+			// 	break
+			// }
+
 			status, err := getLatestRideStatus(ctx, tx, ride.ID)
 			if err != nil {
 				writeError(w, http.StatusInternalServerError, err)
