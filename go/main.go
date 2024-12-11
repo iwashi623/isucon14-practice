@@ -198,25 +198,25 @@ func initialLatestStatus() error {
 		return fmt.Errorf("initial err, failed to add column: %w", err)
 	}
 
-	_, err = db.Exec(`
-		CREATE TRIGGER update_latest_status
-		AFTER INSERT ON ride_statuses
-		FOR EACH ROW
-		BEGIN
-			UPDATE rides
-			SET latest_status = NEW.status
-			WHERE id = NEW.ride_id;
-		END;
-	`)
+	// _, err = db.Exec(`
+	// 	CREATE TRIGGER update_latest_status
+	// 	AFTER INSERT ON ride_statuses
+	// 	FOR EACH ROW
+	// 	BEGIN
+	// 		UPDATE rides
+	// 		SET latest_status = NEW.status
+	// 		WHERE id = NEW.ride_id;
+	// 	END;
+	// `)
 
-	if err != nil {
-		return fmt.Errorf("initial err, failed to create trigger: %w", err)
-	}
+	// if err != nil {
+	// 	return fmt.Errorf("initial err, failed to create trigger: %w", err)
+	// }
 
-	_, err = db.Exec(`
-		UPDATE rides
-		SET latest_status = (SELECT status FROM ride_statuses WHERE ride_id = rides.id ORDER BY created_at DESC LIMIT 1);
-	`)
+	// _, err = db.Exec(`
+	// 	UPDATE rides
+	// 	SET latest_status = (SELECT status FROM ride_statuses WHERE ride_id = rides.id ORDER BY created_at DESC LIMIT 1);
+	// `)
 
 	if err != nil {
 		return fmt.Errorf("initial err, failed to insert latest_ride_statuses: %w", err)
