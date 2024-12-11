@@ -197,3 +197,4 @@ CREATE INDEX ride_statuses_ride_id_app_sent_at_IDX USING BTREE ON isuride.ride_s
 CREATE INDEX rides_chair_id_IDX USING BTREE ON isuride.rides (chair_id,updated_at DESC);
 CREATE INDEX chairs_access_token_IDX USING BTREE ON isuride.chairs (access_token);
 CREATE INDEX rides_user_id_IDX USING BTREE ON isuride.rides (user_id,created_at DESC);
+CREATE INDEX coupons_used_by_IDX USING BTREE ON isuride.coupons (used_by);
