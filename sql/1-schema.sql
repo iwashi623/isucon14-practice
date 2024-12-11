@@ -144,6 +144,7 @@ CREATE TABLE chair_total_distances (
 );
 
 DELIMITER //
+
 CREATE TRIGGER update_chair_total_distances AFTER INSERT ON chair_locations FOR EACH ROW
 	BEGIN
 		DECLARE distance INTEGER;
@@ -165,7 +166,8 @@ CREATE TRIGGER update_chair_total_distances AFTER INSERT ON chair_locations FOR 
 		ON DUPLICATE KEY UPDATE
 			total_distance = total_distance + VALUES(total_distance),
 			updated_at = VALUES(updated_at);
-	END;
+	END //
+  
 DELIMITER ;
 
 INSERT INTO chair_total_distances (chair_id, total_distance, updated_at)
