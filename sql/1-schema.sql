@@ -134,3 +134,10 @@ CREATE TABLE coupons
   PRIMARY KEY (user_id, code)
 )
   COMMENT 'クーポンテーブル';
+
+CREATE INDEX chairs_owner_id_IDX USING BTREE ON isuride.chairs (owner_id);
+CREATE INDEX chair_locations_chair_id_IDX USING BTREE ON isuride.chair_locations (chair_id,created_at DESC);
+CREATE INDEX ride_statuses_ride_id_IDX USING BTREE ON isuride.ride_statuses (ride_id,created_at DESC);
+CREATE INDEX ride_statuses_ride_id_chair_sent_at_IDX USING BTREE ON isuride.ride_statuses (ride_id,chair_sent_at);
+CREATE INDEX ride_statuses_ride_id_app_sent_at_IDX USING BTREE ON isuride.ride_statuses (ride_id,app_sent_at);
+CREATE INDEX rides_chair_id_IDX USING BTREE ON isuride.rides (chair_id,updated_at DESC);
