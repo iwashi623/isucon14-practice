@@ -25,6 +25,8 @@ func main() {
 	http.ListenAndServe(":8080", mux)
 }
 
+const retryMilisec = 1000
+
 func setup() http.Handler {
 	host := os.Getenv("ISUCON_DB_HOST")
 	if host == "" {
